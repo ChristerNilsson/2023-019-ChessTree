@@ -138,6 +138,7 @@ def updateDB(fen,key):
 	hex = m.hexdigest()[0:12]
 	base64 = codecs.encode(codecs.decode(hex, 'hex'), 'base64')
 	base64 = base64.decode('ascii')[0:8]
+	print(key,base64,fen)
 	if base64 in database:
 		value = database[base64]
 	else:
@@ -152,7 +153,8 @@ def traverse(tree):
 	for key in tree:
 		move = chess.Move.from_uci(key)
 		board.push(move)
-		updateDB(board.fen(),key)
+		fen = board.fen(en_passant = 'fen')
+		updateDB(fen,key)
 		traverse(tree[key])
 		board.pop()
 
@@ -161,8 +163,8 @@ def readTree(filename):
 	start = time.time()
 	with open("data/" + filename + ".json", "r") as g:
 		tree = json.load(g)
-		# print(tree)
 		board = chess.Board()
+
 		traverse(tree)
 	print("Ready!", 1000*(time.time() - start))
 
