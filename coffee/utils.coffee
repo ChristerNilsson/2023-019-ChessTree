@@ -1,8 +1,8 @@
-import _                from 'https://cdn.skypack.dev/lodash'
+import _ from 'https://cdn.skypack.dev/lodash'
 import { createSignal, createEffect, createMemo } from "https://cdn.skypack.dev/solid-js@1.2.6"
 import { createStore }  from "https://cdn.skypack.dev/solid-js@1.2.6/store"
-import h                from "https://cdn.skypack.dev/solid-js@1.2.6/h"
-import { render }       from "https://cdn.skypack.dev/solid-js@1.2.6/web"
+import h from "https://cdn.skypack.dev/solid-js@1.2.6/h"
+import { render } from "https://cdn.skypack.dev/solid-js@1.2.6/web"
 
 export signal = createSignal
 export effect = createEffect

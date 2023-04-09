@@ -1,3 +1,9 @@
+import {ass,log,range,split,param,hexToBase64} from '../js/utils.js'
+import {Button} from '../js/button.js'
+import _ from 'https://cdn.skypack.dev/lodash'
+import cryptoJs from 'https://cdn.skypack.dev/crypto-js'
+import {download} from '../js/download.js'
+
 export global = {
 	version:'ver: B',
 	board:null,
@@ -10,13 +16,9 @@ export global = {
 	database: {},
 	currTree:0, # index till träden
 	currNode:null, # pekar in i ett träd
+	count: 0, # räknar antal nya drag i trädet
 	stack:[]
 }
-
-import {ass,log,range,split,param,hexToBase64} from '../js/utils.js'
-import {Button} from '../js/button.js'
-import _           from 'https://cdn.skypack.dev/lodash'
-import cryptoJs from 'https://cdn.skypack.dev/crypto-js'
 
 export coords = (uci) =>
 	param.String uci
@@ -103,6 +105,7 @@ export clickString = (key) =>
 	else if key == 'pgup' then pgup()
 	else if key == 'pgdn' then pgdn()
 	else if key == 'undo' then undo()
+	else if key == 'save' then download global.tree, global.filename + '.json'
 	else console.log 'unknown key in clickString',key
 
 export getMove = (index) =>

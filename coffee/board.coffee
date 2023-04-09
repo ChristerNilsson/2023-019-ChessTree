@@ -1,4 +1,4 @@
-import _           from 'https://cdn.skypack.dev/lodash'
+import _ from 'https://cdn.skypack.dev/lodash'
 import {ass,lerp,param,range,hexToBase64} from '../js/utils.js'
 import cryptoJs from 'https://cdn.skypack.dev/crypto-js'
 import {Square} from '../js/square.js'
@@ -22,9 +22,10 @@ export class Board
 		x1 = 3.5
 		x2 = 5.5
 		x3 = 7.5
-		@buttons.push new Button x0*SIZE, 9.5*SIZE, 'undo',    => clickString 'undo'
-		@buttons.push new Button x0*SIZE, 10.5*SIZE, 'flip',    => clickString 'flip'
-		@buttons.push new Button x3*SIZE, 10.5*SIZE, 'link',    => clickString 'link'
+		@buttons.push new Button x0*SIZE, 9.5*SIZE, 'undo', => clickString 'undo'
+		@buttons.push new Button x1*SIZE, 9.5*SIZE, 'flip', => clickString 'flip'
+		@buttons.push new Button x2*SIZE, 9.5*SIZE, 'link', => clickString 'link'
+		@buttons.push new Button x3*SIZE, 9.5*SIZE, 'save', => clickString 'save'
 
 	click : (i) =>
 		col = i %% 8
@@ -33,20 +34,23 @@ export class Board
 		color = "wb"[global.chess.history().length %% 2] # förväntad färg på pjäsen
 
 		if @clickedSquares.length == 0
-			if sq == null then return
-			if sq.color == color then @clickedSquares.push i
+			if sq != null and sq.color == color then @clickedSquares.push i
 		else
 			if i == @clickedSquares[0]
 				@clickedSquares = []
-				return
-			@clickedSquares.push i
-			move = toObjectNotation @clickedSquares
-			uci = toUCI @clickedSquares
-			if global.chess.move move # accepera draget
-				global.stack.push global.currNode
-				if uci not in global.currNode then global.currNode[uci] = {}
-				global.currNode = global.currNode[uci]
-			@clickedSquares = []
+			else
+				@clickedSquares.push i
+				move = toObjectNotation @clickedSquares
+				uci = toUCI @clickedSquares
+				if global.chess.move move # accepera draget
+					global.stack.push global.currNode
+					if uci not in global.currNode
+						global.currNode[uci] = {}
+						global.count++
+						#console.log 'download',global.tree
+						#download global.tree,'tree.json'
+					global.currNode = global.currNode[uci]
+				@clickedSquares = []
 
 # gå igenom nodens barn och visa dem i en sorterad lista
 	showChildren : =>
@@ -71,6 +75,8 @@ export class Board
 		pop()
 
 	draw : =>
+
+		@buttons[3].text = if global.count>0 then 'save ' + global.count else ""
 
 		for button in @buttons
 			button.draw()

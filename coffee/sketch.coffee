@@ -1,4 +1,4 @@
-import _           from 'https://cdn.skypack.dev/lodash'
+import _ from 'https://cdn.skypack.dev/lodash'
 import {ass,log,range} from '../js/utils.js'
 import {Board} from '../js/board.js'
 import {Button} from '../js/button.js'
@@ -17,16 +17,11 @@ window.preload = =>
 
 window.setup = =>
 	createCanvas SIZE*10.3, SIZE*11
-
 	textAlign CENTER,CENTER
 	rectMode CENTER
-
 	global.board = new Board()
-
-	# console.log global.trees
 	global.chess = new Chess()
 	loadTree 0
-	
 	xdraw()
 
 xdraw = =>
