@@ -23,7 +23,7 @@ window.setup = =>
 
 	global.board = new Board()
 
-	console.log global.trees
+	# console.log global.trees
 	global.chess = new Chess()
 	loadTree 0
 	

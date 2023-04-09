@@ -16,7 +16,6 @@ export class Board
 		@flipped = false
 		for i in range 64
 			do (i) => @squares.push new Square i, => @click i
-		# @start()
 
 		@buttons = []
 		x0 = 1.5
@@ -24,58 +23,30 @@ export class Board
 		x2 = 5.5
 		x3 = 7.5
 		@buttons.push new Button x0*SIZE, 9.5*SIZE, 'undo',    => clickString 'undo'
-		#@buttons.push new Button x0*SIZE, 9.5*SIZE, 'first',    => clickString 'first'
-		#@buttons.push new Button x1*SIZE, 9.5*SIZE, 'move -1',  => clickString 'prev'
-		#@buttons.push new Button x2*SIZE, 9.5*SIZE, 'move +1',  => clickString 'next'
-		#@buttons.push new Button x3*SIZE, 9.5*SIZE, 'last',     => clickString 'last'
-
 		@buttons.push new Button x0*SIZE, 10.5*SIZE, 'flip',    => clickString 'flip'
-		#@buttons.push new Button x1*SIZE, 10.5*SIZE, 'game -1', => clickString 'pgup'
-		#@buttons.push new Button x2*SIZE, 10.5*SIZE, 'game +1', => clickString 'pgdn'
 		@buttons.push new Button x3*SIZE, 10.5*SIZE, 'link',    => clickString 'link'
 
-	# start : =>
-	# 	@pieces = "RNBQKBNRPPPPPPPP33333333444444445555555566666666pppppppprnbqkbnr"
-
 	click : (i) =>
+		col = i %% 8
+		row = 7-i // 8
+		sq = global.chess.board()[row][col]
+		color = "wb"[global.chess.history().length %% 2] # förväntad färg på pjäsen
+
 		if @clickedSquares.length == 0
-			if true # pjäs av rätt färg
-				@clickedSquares.push i
-		else if @clickedSquares.length == 1
-			if i==@clickedSquares[0]
-				@clickedSquares = []
-			else
-				@clickedSquares.push i
-				move = toObjectNotation @clickedSquares #[0],@clickedSquares[1]]
-				uci = toUCI @clickedSquares #[0],@clickedSquares[1]
-				@clickedSquares = []
-				console.log move
-				global.chess.move move
-
-				console.log 'click',global.currNode,uci
-				global.stack.push global.currNode
-				global.currNode = global.currNode[uci]
-				dumpState()
-
-				# showChildren()
-
-				# coffee  lSpemS5l rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
-				# python: lSpemS5l rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
-
-				#console.log 'history',global.chess.history()
-
+			if sq == null then return
+			if sq.color == color then @clickedSquares.push i
 		else
-			@clickedSquares = [i]
-		console.log 'sqclick',@clickedSquares
-
-	# move : (i) =>
-	# 	param.Integer i
-	# 	console.log 'move',i
-	# 	m = global.moves[global.index-1]
-	# 	if i==0 then key = m.uci else key = m.superiors[i-1]
-	# 	@pieces = makeMove key, global.piecess[global.index-1]
-	# 	global.superIndex = i+1
-	# 	fixSuper 0
+			if i == @clickedSquares[0]
+				@clickedSquares = []
+				return
+			@clickedSquares.push i
+			move = toObjectNotation @clickedSquares
+			uci = toUCI @clickedSquares
+			if global.chess.move move # accepera draget
+				global.stack.push global.currNode
+				if uci not in global.currNode then global.currNode[uci] = {}
+				global.currNode = global.currNode[uci]
+			@clickedSquares = []
 
 # gå igenom nodens barn och visa dem i en sorterad lista
 	showChildren : =>
@@ -84,16 +55,18 @@ export class Board
 		noStroke()
 		textAlign LEFT,CENTER
 		fill 'white'
-		for i in range keys.length #key in _.keys global.currNode
+		for i in range keys.length
 			key = keys[i]
 			pair = coords key
 			global.chess.move toObjectNotation pair
 			fen = global.chess.fen()
+			# console.log key,pair,toObjectNotation pair
+			#san = global.chess.san toObjectNotation pair
+			san = _.last global.chess.history()
 			base64 = hexToBase64(cryptoJs.SHA256(fen).toString()).slice 0,8
-			value = global.database[base64]
-			if value == undefined then value = "?"
-			console.log key, base64, value, fen
-			text key + ": " + value, 8.7*SIZE, 1*SIZE + i*0.5*SIZE
+			value = global.database[base64] or "?"
+			# console.log key, san, base64, value, fen
+			text san+ ": " + value, 8.7*SIZE, 1*SIZE + i*0.5*SIZE
 			global.chess.undo()
 		pop()
 
@@ -129,13 +102,7 @@ export class Board
 			text 'move: ' + (1+global.index//2) + "BW"[global.index%2]+ " of "+ (1+global.moves.length//2), 4.5*SIZE, 10*SIZE
 		if global.index==0
 			score = '0'
-		# else 
-		# 	if global.superIndex == 0
-		# 		score = global.moves[global.index-1].score
-		# 	else 
-		# 		score = global.moves[global.index-1].scores[global.superIndex-1]
 
-		# text 'depth: '+global.tree.depth, 1.5*SIZE, 10*SIZE
 		text global.version, 7.5*SIZE, 10*SIZE
 		textAlign RIGHT,CENTER
 		fill 'white'
