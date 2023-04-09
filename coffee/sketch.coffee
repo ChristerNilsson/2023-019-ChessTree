@@ -2,7 +2,7 @@ import _           from 'https://cdn.skypack.dev/lodash'
 import {ass,log,range} from '../js/utils.js'
 import {Board} from '../js/board.js'
 import {Button} from '../js/button.js'
-import {clickString,fixSuper,global,loadTree} from '../js/globals.js'
+import {clickString,global,loadTree} from '../js/globals.js'
 
 SIZE = global.SIZE
 released = true # prevention of touch bounce
@@ -23,7 +23,7 @@ window.setup = =>
 
 	global.board = new Board()
 
-	#console.log global.trees
+	console.log global.trees
 	global.chess = new Chess()
 	loadTree 0
 	

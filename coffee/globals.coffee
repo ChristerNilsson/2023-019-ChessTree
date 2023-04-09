@@ -3,12 +3,11 @@ export global = {
 	board:null,
 	index:0,
 	SIZE:50, # of square
-	filename:"",
 	pics:{}, # 12 pjäser
 	moves:[],
 	data:null,
-	superIndex:0,
-	piecess:[], # bort!
+	# superIndex:0,
+	# piecess:[], # bort!
 	buttons:[],
 	database: {},
 	currTree:0, # index till träden
@@ -20,17 +19,6 @@ import {ass,log,range,split,param,hexToBase64} from '../js/utils.js'
 import {Button} from '../js/button.js'
 import _           from 'https://cdn.skypack.dev/lodash'
 import cryptoJs from 'https://cdn.skypack.dev/crypto-js'
-
-# gå igenom nodens barn och visa dem i en sorterad lista
-export showChildren = =>
-	for key in _.keys global.currNode
-		pair = coords key
-		global.chess.move toObjectNotation pair
-		fen = global.chess.fen()
-		base64 = hexToBase64(cryptoJs.SHA256(fen).toString()).slice 0,8
-		value = global.database[base64]
-		console.log key, base64, value, fen
-		global.chess.undo()
 
 export coords = (uci) =>
 	param.String uci
@@ -83,13 +71,12 @@ export loadTree = (delta) =>
 	global.currTree = (global.currTree+delta) %% _.size global.trees
 
 	keys = _.keys global.trees
-	global.filename = keys[global.currTree]
 	global.tree = global.trees[keys[global.currTree]]
 
 	global.currNode = global.tree.moves[""]
 	global.stack = [] #.push global.currNode
 	dumpState()
-	showChildren()
+	# showChildren()
 	# console.log 'currNode',global.currNode
 	# console.log 'stack',global.stack
 
@@ -247,19 +234,19 @@ export clickString = (key) =>
 	else if key == 'undo' then undo()
 	else console.log 'unknown key in clickString',key
 
-export clickInteger = (ix) =>
-	param.Integer ix
-	#setIndex global.index
-	#global.superIndex = key
-	global.board.move ix #global.superIndex
-	#fixSuper 0
+# export clickInteger = (ix) =>
+# 	param.Integer ix
+# 	#setIndex global.index
+# 	#global.superIndex = key
+# 	global.board.move ix #global.superIndex
+# 	#fixSuper 0
 
-export fixSuper = (value) =>
-	param.Test value in [-1,0,1]
-	global.superIndex = (global.superIndex+value) %% (getMove(global.index-1).superiors.length+1)
-	if global.superIndex == 0 then uci = getMove(global.index-1).uci
-	else uci = getMove(global.index-1).superiors[global.superIndex-1]
-	global.board.pieces = makeMove uci,global.piecess[global.index-1]
+# export fixSuper = (value) =>
+# 	param.Test value in [-1,0,1]
+# 	global.superIndex = (global.superIndex+value) %% (getMove(global.index-1).superiors.length+1)
+# 	if global.superIndex == 0 then uci = getMove(global.index-1).uci
+# 	else uci = getMove(global.index-1).superiors[global.superIndex-1]
+# 	# global.board.pieces = makeMove uci,global.piecess[global.index-1]
 
 export getMove = (index) =>
 	param.Test -1 <= index <= global.moves.length

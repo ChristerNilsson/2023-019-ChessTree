@@ -3,8 +3,8 @@ import {ass,lerp,param,range,hexToBase64} from '../js/utils.js'
 import cryptoJs from 'https://cdn.skypack.dev/crypto-js'
 import {Square} from '../js/square.js'
 import {Button} from '../js/button.js'
-import {coords,clickString,getMove,global,loadTree,fixSuper,toObjectNotation,toUCI} from '../js/globals.js'
-import {dumpState,showChildren} from '../js/globals.js'
+import {coords,clickString,getMove,global,loadTree,toObjectNotation,toUCI} from '../js/globals.js'
+import {dumpState} from '../js/globals.js'
 
 SIZE = global.SIZE
 
@@ -57,7 +57,7 @@ export class Board
 				global.currNode = global.currNode[uci]
 				dumpState()
 
-				showChildren()
+				# showChildren()
 
 				# coffee  lSpemS5l rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
 				# python: lSpemS5l rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
@@ -77,6 +77,26 @@ export class Board
 	# 	global.superIndex = i+1
 	# 	fixSuper 0
 
+# gå igenom nodens barn och visa dem i en sorterad lista
+	showChildren : =>
+		keys = _.keys global.currNode
+		push()
+		noStroke()
+		textAlign LEFT,CENTER
+		fill 'white'
+		for i in range keys.length #key in _.keys global.currNode
+			key = keys[i]
+			pair = coords key
+			global.chess.move toObjectNotation pair
+			fen = global.chess.fen()
+			base64 = hexToBase64(cryptoJs.SHA256(fen).toString()).slice 0,8
+			value = global.database[base64]
+			if value == undefined then value = "?"
+			console.log key, base64, value, fen
+			text key + ": " + value, 8.7*SIZE, 1*SIZE + i*0.5*SIZE
+			global.chess.undo()
+		pop()
+
 	draw : =>
 
 		for button in @buttons
@@ -89,7 +109,7 @@ export class Board
 
 		push()
 		textAlign LEFT,CENTER
-		text global.filename,0.05*SIZE, 0.3*SIZE
+		text global.trees[0].name,0.05*SIZE, 0.3*SIZE
 		pop()
 
 		for i in range 8
@@ -109,13 +129,13 @@ export class Board
 			text 'move: ' + (1+global.index//2) + "BW"[global.index%2]+ " of "+ (1+global.moves.length//2), 4.5*SIZE, 10*SIZE
 		if global.index==0
 			score = '0'
-		else 
-			if global.superIndex == 0
-				score = global.moves[global.index-1].score
-			else 
-				score = global.moves[global.index-1].scores[global.superIndex-1]
+		# else 
+		# 	if global.superIndex == 0
+		# 		score = global.moves[global.index-1].score
+		# 	else 
+		# 		score = global.moves[global.index-1].scores[global.superIndex-1]
 
-		text 'depth: '+global.tree.depth, 1.5*SIZE, 10*SIZE
+		# text 'depth: '+global.tree.depth, 1.5*SIZE, 10*SIZE
 		text global.version, 7.5*SIZE, 10*SIZE
 		textAlign RIGHT,CENTER
 		fill 'white'
@@ -123,6 +143,7 @@ export class Board
 
 		pop()
 		@drawBars score
+		@showChildren()
 
 	littera : =>
 		noStroke()
