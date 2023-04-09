@@ -30,6 +30,10 @@ param.Compact = (types,args) =>
 
 export N = 8
 
+export hexToBase64 = (str) =>
+	btoa String.fromCharCode.apply(null,
+		str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" "))
+
 export ass = (a,b) =>
 	if not _.isEqual a,b
 		log 'assert failure:'

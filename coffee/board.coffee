@@ -1,7 +1,10 @@
-import {ass,lerp,param,range} from '../js/utils.js'
+import _           from 'https://cdn.skypack.dev/lodash'
+import {ass,lerp,param,range,hexToBase64} from '../js/utils.js'
+import cryptoJs from 'https://cdn.skypack.dev/crypto-js'
 import {Square} from '../js/square.js'
 import {Button} from '../js/button.js'
-import {coords,clickString,getMove,global, loadTree, fixSuper,toObjectNotation} from '../js/globals.js'
+import {coords,clickString,getMove,global,loadTree,fixSuper,toObjectNotation,toUCI} from '../js/globals.js'
+import {dumpState,showChildren} from '../js/globals.js'
 
 SIZE = global.SIZE
 
@@ -13,7 +16,7 @@ export class Board
 		@flipped = false
 		for i in range 64
 			do (i) => @squares.push new Square i, => @click i
-		@start()
+		# @start()
 
 		@buttons = []
 		x0 = 1.5
@@ -30,8 +33,9 @@ export class Board
 		#@buttons.push new Button x1*SIZE, 10.5*SIZE, 'game -1', => clickString 'pgup'
 		#@buttons.push new Button x2*SIZE, 10.5*SIZE, 'game +1', => clickString 'pgdn'
 		@buttons.push new Button x3*SIZE, 10.5*SIZE, 'link',    => clickString 'link'
-	start : =>
-		@pieces = "RNBQKBNRPPPPPPPP33333333444444445555555566666666pppppppprnbqkbnr"
+
+	# start : =>
+	# 	@pieces = "RNBQKBNRPPPPPPPP33333333444444445555555566666666pppppppprnbqkbnr"
 
 	click : (i) =>
 		if @clickedSquares.length == 0
@@ -42,24 +46,36 @@ export class Board
 				@clickedSquares = []
 			else
 				@clickedSquares.push i
-				move = toObjectNotation @clickedSquares[0],@clickedSquares[1]
+				move = toObjectNotation @clickedSquares #[0],@clickedSquares[1]]
+				uci = toUCI @clickedSquares #[0],@clickedSquares[1]
 				@clickedSquares = []
 				console.log move
 				global.chess.move move
-				console.log global.chess.history()
+
+				console.log 'click',global.currNode,uci
+				global.stack.push global.currNode
+				global.currNode = global.currNode[uci]
+				dumpState()
+
+				showChildren()
+
+				# coffee  lSpemS5l rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
+				# python: lSpemS5l rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
+
+				#console.log 'history',global.chess.history()
 
 		else
 			@clickedSquares = [i]
 		console.log 'sqclick',@clickedSquares
 
-	move : (i) =>
-		param.Integer i
-		console.log 'move',i
-		m = global.moves[global.index-1]
-		if i==0 then key = m.uci else key = m.superiors[i-1]
-		@pieces = makeMove key, global.piecess[global.index-1]
-		global.superIndex = i+1
-		fixSuper 0
+	# move : (i) =>
+	# 	param.Integer i
+	# 	console.log 'move',i
+	# 	m = global.moves[global.index-1]
+	# 	if i==0 then key = m.uci else key = m.superiors[i-1]
+	# 	@pieces = makeMove key, global.piecess[global.index-1]
+	# 	global.superIndex = i+1
+	# 	fixSuper 0
 
 	draw : =>
 

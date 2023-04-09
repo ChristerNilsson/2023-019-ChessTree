@@ -2,21 +2,35 @@ export global = {
 	version:'ver: B',
 	board:null,
 	index:0,
-	SIZE:50,
+	SIZE:50, # of square
 	filename:"",
-	pics:{},
+	pics:{}, # 12 pjäser
 	moves:[],
 	data:null,
 	superIndex:0,
-	piecess:[],
+	piecess:[], # bort!
 	buttons:[],
 	database: {},
-	currTree:0
+	currTree:0, # index till träden
+	currNode:null, # pekar in i ett träd
+	stack:[]
 }
 
-import {ass,log,range,split,param} from '../js/utils.js'
+import {ass,log,range,split,param,hexToBase64} from '../js/utils.js'
 import {Button} from '../js/button.js'
 import _           from 'https://cdn.skypack.dev/lodash'
+import cryptoJs from 'https://cdn.skypack.dev/crypto-js'
+
+# gå igenom nodens barn och visa dem i en sorterad lista
+export showChildren = =>
+	for key in _.keys global.currNode
+		pair = coords key
+		global.chess.move toObjectNotation pair
+		fen = global.chess.fen()
+		base64 = hexToBase64(cryptoJs.SHA256(fen).toString()).slice 0,8
+		value = global.database[base64]
+		console.log key, base64, value, fen
+		global.chess.undo()
 
 export coords = (uci) =>
 	param.String uci
@@ -27,7 +41,7 @@ export coords = (uci) =>
 	param.Array [c0+8*r0, c1+8*r1]
 ass [8,24], coords "a2a4"
 
-export toUCI = (from,to) =>
+export toUCI = ([from,to]) =>
 	param.Integer from
 	param.Integer to
 	c0 = "abcdefgh"[from%8]
@@ -35,15 +49,16 @@ export toUCI = (from,to) =>
 	c1 = "abcdefgh"[to%8]
 	r1 = "12345678"[to//8]
 	param.String c0+r0+c1+r1
-ass "e2e4", toUCI 12,28
+ass "e2e4", toUCI [12,28]
 
-export toObjectNotation = (from,to) =>
+export toObjectNotation = ([from,to]) =>
 	param.Integer from
 	param.Integer to
-	uci = toUCI from,to
+	uci = toUCI [from,to]
 	from = uci.slice 0,2
 	to = uci.slice 2,4
 	param.Object {from, to}
+ass {from:'e2', to:'e4'}, toObjectNotation [12,28]
 
 export empty = (n) =>
 	param.Integer n
@@ -51,6 +66,17 @@ export empty = (n) =>
 
 pgup = => loadTree 1
 pgdn = => loadTree -1
+undo = => 
+	global.chess.undo()
+	global.currNode = global.stack.pop()
+	dumpState()
+
+export dumpState = =>
+	console.log 'STATE ########'
+	console.log '  stack',global.stack
+	console.log '  currNode',global.currNode
+	console.log '  history',global.chess.history()
+
 
 export loadTree = (delta) =>
 	param.Test delta in [-1,0,1]
@@ -59,6 +85,13 @@ export loadTree = (delta) =>
 	keys = _.keys global.trees
 	global.filename = keys[global.currTree]
 	global.tree = global.trees[keys[global.currTree]]
+
+	global.currNode = global.tree.moves[""]
+	global.stack = [] #.push global.currNode
+	dumpState()
+	showChildren()
+	# console.log 'currNode',global.currNode
+	# console.log 'stack',global.stack
 
 	# global.board.start()
 
@@ -80,7 +113,7 @@ export loadTree = (delta) =>
 	# 	global.board.pieces = makeMove move.uci, _.last global.piecess
 	# 	global.piecess.push global.board.pieces
 
-	clickString 'last' # slutställning
+	# clickString 'last' # slutställning
 
 # export makeMove = (uci,pieces) =>
 # 	param.String uci
@@ -169,48 +202,49 @@ ass 0, f [-100,50],'-100'
 ass 0.75, f [-100,50],'50'
 ass 1, f [-100,50],'100'
 
-export setIndex =(value) =>
-	param.Integer value
-	if value < -1 or value > global.moves.length then return
-	if value == -1 then global.board.start()
-	else
-		global.index = value
-		global.buttons = []
-		global.board.pieces = global.piecess[global.index]
-		if global.index<=0 then return 
-		move = global.moves[global.index-1]
-		global.superIndex = 0
-		if move.superiors.length == 0
-			arrSAN = [move.san]
-			arrScore = [move.score]
-		else 
-			arrSAN = move.superiorsSan.concat [move.san]
-			arrScore = move.scores.concat [move.score]
+# export setIndex =(value) =>
+# 	param.Integer value
+# 	if value < -1 or value > global.moves.length then return
+# 	if value == -1 then global.board.start()
+# 	else
+# 		global.index = value
+# 		global.buttons = []
+# 		global.board.pieces = global.piecess[global.index]
+# 		if global.index<=0 then return 
+# 		move = global.moves[global.index-1]
+# 		global.superIndex = 0
+# 		if move.superiors.length == 0
+# 			arrSAN = [move.san]
+# 			arrScore = [move.score]
+# 		else 
+# 			arrSAN = move.superiorsSan.concat [move.san]
+# 			arrScore = move.scores.concat [move.score]
 
-		for i in range min 13, arrSAN.length
-			do (i) =>
-				x = 9.4*global.SIZE
-				y = 0.8*global.SIZE*(i+1.1)
-				button = new Button x,y, arrSAN[i], () => clickInteger i
-				button.bg = ['black','white'][global.index%2]
-				button.fg = ['white','black'][global.index%2]
-				button.align = LEFT
-				button.bar = f arrScore, arrScore[i]
-				global.buttons.push button
-		global.buttons[0].drawStar = true
+# 		for i in range min 13, arrSAN.length
+# 			do (i) =>
+# 				x = 9.4*global.SIZE
+# 				y = 0.8*global.SIZE*(i+1.1)
+# 				button = new Button x,y, arrSAN[i], () => clickInteger i
+# 				button.bg = ['black','white'][global.index%2]
+# 				button.fg = ['white','black'][global.index%2]
+# 				button.align = LEFT
+# 				button.bar = f arrScore, arrScore[i]
+# 				global.buttons.push button
+# 		global.buttons[0].drawStar = true
 
 export clickString = (key) =>
 	param.String key
 	if key == 'flip' then global.board.flip()
-	else if key == 'first' then setIndex 0
-	else if key == 'last' then setIndex global.moves.length
-	else if key == 'prev' then setIndex global.index-1
-	else if key == 'next' then setIndex global.index+1
+	# else if key == 'first' then setIndex 0
+	# else if key == 'last' then setIndex global.moves.length
+	# else if key == 'prev' then setIndex global.index-1
+	# else if key == 'next' then setIndex global.index+1
 	else if key == 'link' then window.open data.link, '_blank'
 	else if key == 'up'   then fixSuper -1
 	else if key == 'down' then fixSuper 1
 	else if key == 'pgup' then pgup()
 	else if key == 'pgdn' then pgdn()
+	else if key == 'undo' then undo()
 	else console.log 'unknown key in clickString',key
 
 export clickInteger = (ix) =>

@@ -1,19 +1,14 @@
-import cryptoJs from 'https://cdn.skypack.dev/crypto-js'
 import _           from 'https://cdn.skypack.dev/lodash'
 import {ass,log,range} from '../js/utils.js'
 import {Board} from '../js/board.js'
 import {Button} from '../js/button.js'
-import {setIndex,clickString,fixSuper,global,loadTree} from '../js/globals.js'
+import {clickString,fixSuper,global,loadTree} from '../js/globals.js'
 
 SIZE = global.SIZE
 released = true # prevention of touch bounce
 
-hexToBase64 = (str) =>
-	btoa String.fromCharCode.apply(null,
-		str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" "))
-
 window.preload = =>
-	global.treebase = loadJSON './data/database.json'
+	global.database = loadJSON './data/database.json'
 	global.trees = loadJSON './data/trees.json'
 	for letter in "rnbqkp"
 		global.pics[letter] = loadImage './images/b' + letter + '.png'
@@ -27,14 +22,10 @@ window.setup = =>
 	rectMode CENTER
 
 	global.board = new Board()
-	loadTree 0
 
-	console.log global.trees
+	#console.log global.trees
 	global.chess = new Chess()
-	#fen = global.chess.fen()
-	#console.log hexToBase64(cryptoJs.SHA256(fen).toString()).slice(0,8), fen
-	# coffee  lSpemS5l rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
-	# python: lSpemS5l rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
+	loadTree 0
 	
 	xdraw()
 
@@ -68,9 +59,7 @@ window.mousePressed = =>
 			return false
 
 	for square in global.board.squares
-		#console.log 'squareA',square.i
 		if square.inside mouseX,mouseY
-			console.log 'squareB',square.i
 			square.onclick()
 			xdraw()
 			return false
