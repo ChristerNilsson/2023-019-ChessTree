@@ -10,8 +10,7 @@ import codecs
 DEPTH = 16
 
 board = None
-analys = {}
-plies = []
+count = {'a':0,'b':0}
 
 # def dump(objs):
 # 	print()
@@ -133,39 +132,56 @@ def getFilenames(root):
 
 def updateDB(fen,key):
 	binary = fen.encode('ascii')
+	start = time.time()
 	m = hashlib.sha256()
 	m.update(binary)
 	hex = m.hexdigest()[0:12]
 	base64 = codecs.encode(codecs.decode(hex, 'hex'), 'base64')
 	base64 = base64.decode('ascii')[0:8]
-	if base64 in database:
+	if False: #base64 in database:
+		calculated = ''
 		value = database[base64]
 	else:
+		calculated = 'calculated'
 		engine.set_position(board.move_stack)
-		value = engine.get_evaluation()
-		value = value['value']
+		value = engine.get_evaluation() # {type:cp, value:31} or {type:mate, value:-1}
+		if value['type'] == 'cp' : value = value['value']
+		else: value = '#' + value['value']
 		database[base64] = value
-	print('  '*(len(board.move_stack)-1), key,base64,value)
+	print('  '*(len(board.move_stack)-1), key,base64,value, calculated) #, fen)
+	# print('sha256',time.time()-start)
 
-def traverse(tree):
-	if tree == None: return
+def traverse(tree,level=0):
+	#if tree == None: return
+	if level >= 24: return  # TREE_DEPTH
+	count['a'] += 1
+	engine.set_position(board.move_stack)
+	best_move = engine.get_best_move()
+	if best_move:
+		if best_move not in tree:
+			tree[best_move] = {}
 	for key in tree:
 		move = chess.Move.from_uci(key)
 		board.push(move)
 		fen = board.fen(en_passant = 'fen')
 		updateDB(fen,key)
-		traverse(tree[key])
+		traverse(tree[key],level+1)
 		board.pop()
 
 def readTree(filename):
 	global board
-	start = time.time()
 	with open("data/" + filename + ".json", "r") as g:
 		tree = json.load(g)
 		board = chess.Board()
-
 		traverse(tree)
-	print("Ready!", 1000*(time.time() - start))
+	return tree
+
+def writeTree(filename,tree):
+	with open("data/" + filename + ".json", "w") as g:
+		s = json.dumps(tree)
+		g.write(s)
+
+start = time.time()
 
 engine = Stockfish(path="stockfish15/stockfish-windows-2022-x86-64-modern")
 engine.set_depth(DEPTH)
@@ -173,8 +189,14 @@ engine.set_depth(DEPTH)
 with open("data/database.json", "r") as f:
 	database = json.load(f)
 
-readTree("bishop")
+name = 'rousseau'
+tree = readTree(name)
+writeTree(name,tree)
 
 with open("data/database.json","w") as f:
 	s = json.dumps(database)
 	f.write(s)
+
+print('count.a:',count['a'])
+
+print("Ready!", 1000 * (time.time() - start))

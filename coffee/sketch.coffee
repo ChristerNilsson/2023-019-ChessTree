@@ -37,15 +37,12 @@ xdraw = =>
 		button.draw()
 
 window.keyPressed = =>
-	if key == 'ArrowRight'  then clickString 'next'
-	if key == 'ArrowLeft' then clickString 'prev'
+	if key == 'ArrowLeft' then clickString 'left'
+	if key == 'ArrowRight'  then clickString 'right'
 	if key == 'ArrowUp'  then clickString 'up'
 	if key == 'ArrowDown' then clickString 'down'
 	if key == ' ' then clickString 'flip'
 	if key == 'Home' then clickString 'first'
-	if key == 'End' then clickString 'last'
-	if key == 'PageUp' then clickString 'pgup'
-	if key == 'PageDown' then clickString 'pgdn'
 	xdraw()
 	return false
 

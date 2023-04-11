@@ -3,7 +3,7 @@ import {ass,lerp,param,range,hexToBase64} from '../js/utils.js'
 import cryptoJs from 'https://cdn.skypack.dev/crypto-js'
 import {Square} from '../js/square.js'
 import {Button} from '../js/button.js'
-import {coords,clickString,getMove,global,loadTree,toObjectNotation,toUCI} from '../js/globals.js'
+import {coords,clickString,global,loadTree,toObjectNotation,toUCI} from '../js/globals.js'
 import {dumpState} from '../js/globals.js'
 
 SIZE = global.SIZE
@@ -51,34 +51,15 @@ export class Board
 					global.currNode = global.currNode[uci]
 				@clickedSquares = []
 
-# gå igenom nodens barn och visa dem i en sorterad lista
+# gå igenom nodens barn och visa dem
 	showChildren : =>
-		keys = _.keys global.currNode
 		push()
 		noStroke()
 		textAlign LEFT,CENTER
-		fill 'white'
-		arr = []
-		for i in range keys.length
-			key = keys[i]
-			pair = coords key
-			global.chess.move toObjectNotation pair
-			fen = global.chess.fen()
-			# console.log key,pair,toObjectNotation pair
-			#san = global.chess.san toObjectNotation pair
-			san = _.last global.chess.history()
-			base64 = hexToBase64(cryptoJs.SHA256(fen).toString()).slice 0,8
-			value = global.database[base64] or "?"
-			# console.log key, san, base64, value, fen
-			arr.push [value,san]
-			global.chess.undo()
-
-		faktor = if global.chess.history().length%%2 == 0 then -1 else 1
-		arr.sort (a,b) -> faktor * (a[0] - b[0])
-		for i in range arr.length
-			[value,san] = arr[i]
+		for i in range global.children.length
+			[value,san,uci] = global.children[i]
+			if global.child == i then fill 'yellow' else fill 'black'
 			text san+ ": " + value, 8.7*SIZE, 1*SIZE + i*0.5*SIZE
-
 		pop()
 
 	draw : =>
@@ -111,18 +92,18 @@ export class Board
 
 		push()
 		textAlign CENTER,CENTER
-		if global.index > 0
-			text 'move: ' + (1+global.index//2) + "BW"[global.index%2]+ " of "+ (1+global.moves.length//2), 4.5*SIZE, 10*SIZE
-		if global.index==0
-			score = '0'
 
 		text global.version, 7.5*SIZE, 10*SIZE
-		textAlign RIGHT,CENTER
-		fill 'white'
-		text score, 10.1*SIZE, 0.3*SIZE
+		#textAlign RIGHT,CENTER
+
+		textSize 20
+		n = global.stack.length
+		if n == 0 then score = '0'
+		if n%2 == 0 then fill 'white' else fill 'black'
+		text 1+n//2, 9.4*SIZE, 0.3*SIZE
 
 		pop()
-		@drawBars score
+		#@drawBars score
 		@showChildren()
 
 	littera : =>
@@ -163,6 +144,8 @@ export class Board
 		pop()
 
 	calcBar = (score) =>
+		return "0"
+
 		param.String score
 		LIMIT = 2000
 		if score[0]=='#' then d = LIMIT

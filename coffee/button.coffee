@@ -1,4 +1,4 @@
-import {getMove,global} from '../js/globals.js'
+import {global} from '../js/globals.js'
 import {param,range} from '../js/utils.js'
 
 export class Button
