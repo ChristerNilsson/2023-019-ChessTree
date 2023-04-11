@@ -6,6 +6,7 @@ import {download} from '../js/download.js'
 
 export global = {
 	version:'ver: B',
+	name : 'bishop', # rousseau
 	board:null,
 	index:0,
 	SIZE:50, # of square
@@ -68,11 +69,15 @@ export dumpState = =>
 export loadTree = (delta) =>
 	param.Test delta in [-1,0,1]
 	global.currTree = (global.currTree+delta) %% _.size global.trees
+	# console.log global.currTree
 
-	keys = _.keys global.trees
-	global.tree = global.trees[keys[global.currTree]]
+	# keys = _.keys global.trees
+	# global.name = keys[global.currTree]
+	# global.tree = global.trees[global.name]
+	# console.log global.name
+	# console.log global.tree
 
-	global.currNode = global.tree.moves[""]
+	global.currNode = global.tree #.moves[""]
 	global.stack = [] #.push global.currNode
 	#dumpState()
 
@@ -96,16 +101,18 @@ ass 0, f [-100,50],'-100'
 ass 0.75, f [-100,50],'50'
 ass 1, f [-100,50],'100'
 
+link = => 'https://lichess.org/analysis/' + global.chess.fen()
+
 export clickString = (key) =>
 	param.String key
 	if key == 'flip' then global.board.flip()
-	else if key == 'link' then window.open data.link, '_blank'
+	else if key == 'link' then window.open link(), '_blank'
 	else if key == 'up'   then fixSuper -1
 	else if key == 'down' then fixSuper 1
 	else if key == 'pgup' then pgup()
 	else if key == 'pgdn' then pgdn()
 	else if key == 'undo' then undo()
-	else if key == 'save' then download global.tree, global.filename + '.json'
+	else if key == 'save' then download global.tree, global.name + '.json'
 	else console.log 'unknown key in clickString',key
 
 export getMove = (index) =>

@@ -44,11 +44,10 @@ export class Board
 				uci = toUCI @clickedSquares
 				if global.chess.move move # accepera draget
 					global.stack.push global.currNode
-					if uci not in global.currNode
+					# console.log uci,global.currNode
+					if uci not of global.currNode
 						global.currNode[uci] = {}
 						global.count++
-						#console.log 'download',global.tree
-						#download global.tree,'tree.json'
 					global.currNode = global.currNode[uci]
 				@clickedSquares = []
 
@@ -59,6 +58,7 @@ export class Board
 		noStroke()
 		textAlign LEFT,CENTER
 		fill 'white'
+		arr = []
 		for i in range keys.length
 			key = keys[i]
 			pair = coords key
@@ -70,8 +70,15 @@ export class Board
 			base64 = hexToBase64(cryptoJs.SHA256(fen).toString()).slice 0,8
 			value = global.database[base64] or "?"
 			# console.log key, san, base64, value, fen
-			text san+ ": " + value, 8.7*SIZE, 1*SIZE + i*0.5*SIZE
+			arr.push [value,san]
 			global.chess.undo()
+
+		faktor = if global.chess.history().length%%2 == 0 then -1 else 1
+		arr.sort (a,b) -> faktor * (a[0] - b[0])
+		for i in range arr.length
+			[value,san] = arr[i]
+			text san+ ": " + value, 8.7*SIZE, 1*SIZE + i*0.5*SIZE
+
 		pop()
 
 	draw : =>
@@ -88,7 +95,7 @@ export class Board
 
 		push()
 		textAlign LEFT,CENTER
-		text global.trees[0].name,0.05*SIZE, 0.3*SIZE
+		text global.name,0.05*SIZE, 0.3*SIZE
 		pop()
 
 		for i in range 8

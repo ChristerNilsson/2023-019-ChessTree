@@ -7,7 +7,7 @@ from os import scandir
 import hashlib
 import codecs
 
-DEPTH = 15
+DEPTH = 16
 
 board = None
 analys = {}
@@ -138,7 +138,6 @@ def updateDB(fen,key):
 	hex = m.hexdigest()[0:12]
 	base64 = codecs.encode(codecs.decode(hex, 'hex'), 'base64')
 	base64 = base64.decode('ascii')[0:8]
-	print(key,base64,fen)
 	if base64 in database:
 		value = database[base64]
 	else:
@@ -146,7 +145,7 @@ def updateDB(fen,key):
 		value = engine.get_evaluation()
 		value = value['value']
 		database[base64] = value
-	# print('  ' * len(board.move_stack), key, base64, value)
+	print('  '*(len(board.move_stack)-1), key,base64,value)
 
 def traverse(tree):
 	if tree == None: return
@@ -169,12 +168,12 @@ def readTree(filename):
 	print("Ready!", 1000*(time.time() - start))
 
 engine = Stockfish(path="stockfish15/stockfish-windows-2022-x86-64-modern")
+engine.set_depth(DEPTH)
 
 with open("data/database.json", "r") as f:
 	database = json.load(f)
 
-readTree("rousseau")
-readTree("rousseau")
+readTree("bishop")
 
 with open("data/database.json","w") as f:
 	s = json.dumps(database)

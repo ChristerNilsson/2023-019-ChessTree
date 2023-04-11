@@ -9,7 +9,11 @@ released = true # prevention of touch bounce
 
 window.preload = =>
 	global.database = loadJSON './data/database.json'
-	global.trees = loadJSON './data/trees.json'
+	#global.database = loadJSON './database.json'
+	#global.trees = loadJSON './data/trees.json'
+	# global.tree = loadJSON './data/' + global.name + '.json'
+	global.tree = loadJSON './data/' + global.name + '.json'
+	console.log global.tree
 	for letter in "rnbqkp"
 		global.pics[letter] = loadImage './images/b' + letter + '.png'
 	for letter in "RNBQKP"
@@ -21,6 +25,7 @@ window.setup = =>
 	rectMode CENTER
 	global.board = new Board()
 	global.chess = new Chess()
+	console.log global.tree
 	loadTree 0
 	xdraw()
 
